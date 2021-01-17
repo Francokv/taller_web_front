@@ -46,25 +46,24 @@ export default function Autor() {
     { defaultValues:{ email: "", pass: "" } });
   
   const [libros, setLibros] = useState([])
-  const [autores, setAutores] = useState([])
+  const [usuarios, setUsuarios] = useState([])
+  const [prestamos, setPrestamos] = useState([])
+
 
   useEffect(() => {
     cargarLibros();
-    cargarAutor();
+    cargarUsuarios();
+    cargarPrestamos();
   }, []);
 
   const columns = [
     {
-      name: 'Codigo',
+      name: 'Codigo libro',
       field: 'codigo'
     },
     {
-      name: 'Nombre',
-      field: 'nombre'
-    },
-    {
-      name: 'Autor',
-      field: 'autor'
+      name: 'Rut persona',
+      field: 'rut'
     }
   ];
 
@@ -93,7 +92,7 @@ export default function Autor() {
     sortColumnDirection: "desc",
   }
   const onSubmit = data => {
-    axios.post("http://localhost:9000/api/libro", data)
+    axios.post("http://localhost:9000/api/prestamo", data)
     .then(response => {
         if (response.status == 200) {
           alert("Usuario registrado exitosamente!!")
@@ -109,20 +108,28 @@ export default function Autor() {
     setLibros(data.libroConAutor);
   };
 
-  const cargarAutor = async () => {
-    const { data } = await axios.get("http://localhost:9000/api/autor");
-    setAutores(data.autor);
+  const cargarPrestamos = async () => {
+    const { data } = await axios.get("http://localhost:9000/api/prestamo");
+    setPrestamos(data.resultado);
   };
 
-  const autorOptions = () => {
-    return autores.reduce((acum, autor) => acum.concat(<option value={autor._id}>{autor.nombre}</option>), [])
+  const cargarUsuarios = async () => {
+    const { data } = await axios.get("http://localhost:9000/api/personas");
+    setUsuarios(data.persona);
+  };
+
+  const personaOptions = () => {
+    return usuarios.reduce((acum, usuario) => acum.concat(<option value={usuario._id}>{usuario.rut}</option>), [])
+  };
+
+  const libroOptions = () => {
+    return libros.reduce((acum, libro) => acum.concat(<option value={libro._id}>{libro.nombre}</option>), [])
   };
 
   const items = () => {
-    return libros.reduce((acum, libro) => acum.concat({
-      nombre: libro.nombre,
-      codigo: libro.codigo,
-      autor: libro.autor?libro.autor.nombre : 'sin autor'
+    return prestamos.reduce((acum, prestamo) => acum.concat({
+      codigo: prestamo.libro?prestamo.libro.codigo:'sin libro',
+      rut: prestamo.persona?prestamo.persona.rut:'sin persona'
     }), []);
   };
 
@@ -131,40 +138,22 @@ export default function Autor() {
       <CssBaseline />
       <div className={classes.paper}>
         <Typography component="h1" variant="h4">
-          Formualrio de libros
+          Formualrio de prestamos
         </Typography>
         <form className={classes.form} onSubmit={handleSubmit(onSubmit)}>
           <Grid container spacing={2}>
-          <Grid item xs={12}>
-              <TextField
-                autoComplete="nombre-libro"
-                name="nombre"
-                variant="outlined"
-                required
-                fullWidth
-                id="nombre"
-                label="Nombre"
-                autoFocus
-                inputRef={register}
-              />
-            </Grid>
             <Grid item xs={12} sm={6}>
-              <TextField
-                autoComplete="codigo"
-                name="codigo"
-                variant="outlined"
-                required
-                fullWidth
-                id="codigo"
-                label="Código"
-                autoFocus
-                inputRef={register}
-              />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <NativeSelect label="Autor" name="autor" inputRef={register}>
+              <label>Libro: </label>
+              <NativeSelect name="libro" inputRef={register}>
                 <option value="">None</option>
-                {autorOptions()}
+                {libroOptions()}
+              </NativeSelect>
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <label>Rut persona: </label>
+              <NativeSelect name="persona" inputRef={register}>
+                <option value="">None</option>
+                {personaOptions()}
               </NativeSelect>
             </Grid>
           </Grid>
@@ -178,11 +167,11 @@ export default function Autor() {
             Crear
           </Button>
             <Typography component="h1" variant="h4">
-              Lista de libros
+              Lista de Prestamos
             </Typography>
           <Grid container spacing={1} lg={12}>
             <MaterialDatatable
-              title={"libros"}
+              title={"Prestamos"}
               data={items()}
               columns={columns}
               options={options}
